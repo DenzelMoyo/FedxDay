@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Team Prompt Builder</title>
+</head>
+<body>
+  <h2>Login & Join Team</h2>
+  <input id="username" placeholder="Your name">
+  <input id="team" placeholder="Team name">
+  <button onclick="joinTeam()">Join Team</button>
+
+  <div id="editor" style="display:none;">
+    <h3>Hello <span id="userDisplay"></span> | Team: <span id="teamDisplay"></span></h3>
+    <textarea id="input" rows="4" cols="50" placeholder="Type your part..."></textarea><br>
+    <button onclick="sendUpdate()">Send</button>
+
+    <h3>Live Prompt:</h3>
+    <div id="output"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let username = "", team = "";
+
+    function joinTeam() {
+      username = document.getElementById("username").value.trim();
+      team = document.getElementById("team").value.trim();
+
+      if (!username || !team) {
+        alert("Enter both username and team name.");
+        return;
+      }
+
+      socket.emit('join_team', { username, team });
+
+      document.getElementById("userDisplay").innerText = username;
+      document.getElementById("teamDisplay").innerText = team;
+      document.getElementById("editor").style.display = "block";
+    }
+
+    function sendUpdate() {
+      const text = document.getElementById("input").value;
+      socket.emit('update_input', text);
+    }
+
+    socket.on('update_prompt', (prompt) => {
+      const values = Object.values(prompt).filter(Boolean);
+      document.getElementById("output").innerText = values.join(" ");
+    });
+  </script>
+</body>
+</html>
